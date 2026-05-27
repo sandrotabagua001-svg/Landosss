@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный Шоурум | Кастомизатор</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/motion@11.11.13/dist/motion.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #02040a;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="text-slate-100 antialiased selection:bg-blue-500/30">
+
+    <div id="root"></div>
+
+    <script>
+        // Интегрированные моки шаблонов (MOCK_TEMPLATES)
+        const MOCK_TEMPLATES = [
+            {
+                id: "glass",
+                name: "Glassmorphism Премиум",
+                accentColor: "from-blue-500 to-cyan-400",
+                canvasGlow: "rgba(59, 130, 246, 0.4)",
+                heroText: "Цифровые экосистемы, которые вызывают доверие и масштабируют бизнес"
+            },
+            {
+                id: "cyber",
+                name: "Cyberpunk Неон",
+                accentColor: "from-fuchsia-500 to-purple-600",
+                canvasGlow: "rgba(217, 70, 239, 0.4)",
+                heroText: "Вламывайтесь в индустрию с дерзким дизайном и сверхзвуковой скоростью"
+            },
+            {
+                id: "gold",
+                name: "Royal Голд",
+                accentColor: "from-amber-400 to-yellow-600",
+                canvasGlow: "rgba(245, 158, 11, 0.3)",
+                heroText: "Эксклюзивный цифровой консьерж-сервис для брендов высшего эшелона"
+            }
+        ];
+
+        const { useState, useRef, useEffect } = React;
+
+        // Компонент для динамического рендеринга иконок Lucide в браузере
+        function Icon({ name, className }) {
+            useEffect(() => {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return React.createElement('i', { 'data-lucide': name, className: className });
+        }
+
+        function InteractiveCustomizer() {
+            const [activeTheme, setActiveTheme] = useState("glass");
+            const [speedLevel, setSpeedLevel] = useState("elite");
+            const [isHovered, setIsHovered] = useState(false);
+            
+            const containerRef = useRef(null);
+            const [rotateX, setRotateX] = useState(0);
+            const [rotateY, setRotateY] = useState(0);
+
+            const handleMouseMove = (e) => {
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                const mouseX = e.clientX - rect.left - width / 2;
+                const mouseY = e.clientY - rect.top - height / 2;
+                const rX = -(mouseY / (height / 2)) * 12;
+                const rY = (mouseX / (width / 2)) * 12;
+                setRotateX(rX);
+                setRotateY(rY);
+            };
+
+            const handleMouseLeave = () => {
+                setRotateX(0);
+                setRotateY(0);
+                setIsHovered(false);
+            };
+
+            const themeData = MOCK_TEMPLATES.find((t) => t.id === activeTheme) || MOCK_TEMPLATES[0];
+
+            const getPriceAndStats = () => {
+                let basePrice = 120000;
+                if (activeTheme === "cyber") basePrice += 40000;
+                if (activeTheme === "gold") basePrice += 70000;
+
+                if (speedLevel === "pro") basePrice += 20000;
+                if (speedLevel === "elite") basePrice += 40000;
+
+                return {
+                    price: basePrice,
+                    speedScore: speedLevel === "standard" ? 74 : speedLevel === "pro" ? 92 : 100,
+                };
+            };
+
+            const stats = getPriceAndStats();
+
+            // Инициализация Motion анимаций из CDN глобального объекта
+            const MotionDiv = window.Motion && window.Motion.motion ? window.Motion.motion.div : 'div';
+            const AnimatePresenceComponent = window.Motion ? window.Motion.AnimatePresence : React.Fragment;
+
+            return React.createElement('div', { 
+                id: 'interactive-showroom', 
+                className: 'w-full relative py-20 px-4 md:px-8 bg-gradient-to-b from-slate-950 via-[#070913] to-slate-950 overflow-hidden min-h-screen flex items-center' 
+            },
+                React.createElement('div', { className: 'absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none' }),
+                React.createElement('div', { className: 'absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none' }),
+
+                React.createElement('div', { className: 'max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 w-full' },
+                    
+                    // Левая панель управления
+                    React.createElement('div', { className: 'lg:col-span-5 space-y-8' },
+                        React.createElement('div', { className: 'space-y-4' },
+                            React.createElement('div', { className: 'inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-mono tracking-widest uppercase font-bold' },
+                                React.createElement(Icon, { name: 'sparkles', className: 'w-3.5 h-3.5 animate-pulse text-blue-400' }),
+                                'Шоурум интерактивного дизайна'
+                            ),
+                            React.createElement('h2', { className: 'text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight' },
+                                'Соберите сайт вашей мечты ',
+                                React.createElement('span', { className: 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300' }, 'в реальном времени')
+                            ),
+                            React.createElement('p', { className: 'text-slate-400 text-sm md:text-base leading-relaxed' },
+                                'Попробуйте интерактивный тренажер премиум идей. Меняйте параметры, чтобы моментально увидеть изменения в дизайне и его ключевых бизнес-метриках.'
+                            )
+                        ),
+
+                        // Шаг 1: Выбор стиля
+                        React.createElement('div', { className: 'space-y-4' },
+                            React.createElement('span', { className: 'text-xs font-mono text-cyan-400 tracking-wider uppercase flex items-center gap-1.5 font-bold' },
+                                React.createElement(Icon, { name: 'layers', className: 'w-4 h-4 text-cyan-400' }), '1. Визуальный стиль шаблона'
+                            ),
+                            React.createElement('div', { className: 'grid grid-cols-3 gap-3' },
+                                MOCK_TEMPLATES.map((tpl) => 
+                                    React.createElement('button', {
+                                        key: tpl.id,
+                                        onClick: () => setActiveTheme(tpl.id),
+                                        className: `p-3 rounded-xl border text-left transition-all duration-300 relative overflow-hidden group cursor-pointer ${
+                                            activeTheme === tpl.id
+                                                ? "bg-white/10 border-blue-500/70 shadow-[0_0_15px_rgba(59,130,246,0.2)] text-white"
+                                                : "bg-white/[0.02] border-white/5 text-slate-400 hover:bg-white/5 hover:border-white/10"
+                                        }`
+                                    },
+                                        React.createElement('div', { className: 'text-xs font-bold leading-none block line-clamp-1' }, tpl.name.split(" ")[0]),
+                                        React.createElement('div', { className: 'text-[10px] text-slate-500 mt-1 line-clamp-1' }, tpl.name.split(" ").slice(1).join(" ")),
+                                        React.createElement('div', { className: `absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${tpl.accentColor}` })
+                                    )
+                                )
+                            )
+                        ),
+
+                        // Шаг 2: Скорость/Оптимизация
+                        React.createElement('div', { className: 'space-y-4' },
+                            React.createElement('span', { className: 'text-xs font-mono text-cyan-400 tracking-wider uppercase flex items-center gap-1.5 font-bold' },
+                                React.createElement(Icon, { name: 'zap', className: 'w-4 h-4 text-cyan-400' }), '2. Уровень оптимизации кода'
+                            ),
+                            React.createElement('div', { className: 'grid grid-cols-3 gap-3' },
+                                [
+                                    { id: "standard", label: "Базовый", score: 74, desc: "Обычная сборка" },
+                                    { id: "pro", label: "Pro Speed+", score: 92, desc: "Быстрая загрузка" },
+                                    { id: "elite", label: "Extreme Ultra", score: 100, desc: "Чистый кастом" }
+                                ].map((lvl) => 
+                                    React.createElement('button', {
+                                        key: lvl.id,
+                                        onClick: () => setSpeedLevel(lvl.id),
+                                        className: `p-3 rounded-xl border text-left transition-all duration-300 cursor-pointer ${
+                                            speedLevel === lvl.id
+                                                ? "bg-white/10 border-cyan-400/70 shadow-[0_0_15px_rgba(34,211,238,0.2)] text-white"
+                                                : "bg-white/[0.02] border-white/5 text-slate-400 hover:bg-white/5 hover:border-white/10"
+                                        }`
+                                    },
+                                        React.createElement('div', { className: 'text-xs font-bold flex items-center justify-between' },
+                                            React.createElement('span', null, lvl.label),
+                                            React.createElement('span', { className: `text-[10px] px-1 rounded-sm font-mono font-bold ${lvl.score === 100 ? "bg-emerald-500/20 text-emerald-400" : lvl.score > 90 ? "bg-amber-500/20 text-amber-400" : "bg-red-500/20 text-red-400"}` },
+                                                lvl.score, '%'
+                                            )
+                                        ),
+                                        React.createElement('div', { className: 'text-[10px] text-slate-500 mt-1' }, lvl.desc)
+                                    )
+                                )
+                            )
+                        ),
+
+                        // Виджет цены
+                        React.createElement('div', { className: 'p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950/70 border border-white/10 space-y-4' },
+                            React.createElement('div', { className: 'grid grid-cols-2 gap-4' },
+                                React.createElement('div', { className: 'space-y-1' },
+                                    React.createElement('span', { className: 'text-[10px] font-mono text-slate-500 uppercase' }, 'Ориентировочная цена'),
+                                    React.createElement('div', { className: 'text-xl md:text-2xl font-mono font-bold text-emerald-400' },
+                                        stats.price.toLocaleString("ru-RU"), ' ₽'
+                                    )
+                                ),
+                                React.createElement('div', { className: 'space-y-1' },
+                                    React.createElement('span', { className: 'text-[10px] font-mono text-slate-500 uppercase flex items-center gap-1' },
+                                        'PageSpeed Скорость ',
+                                        React.createElement(Icon, { name: 'zap', className: 'w-3 h-3 text-amber-400' })
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center gap-2' },
+                                        React.createElement('span', { className: `text-base font-mono font-bold ${stats.speedScore === 100 ? "text-emerald-400" : "text-amber-400"}` },
+                                            stats.speedScore, '/100'
+                                        )
+                                    )
+                                )
+                            ),
+                            React.createElement('a', {
+                                href: '#',
+                                onClick: (e) => e.preventDefault(),
+                                className: 'w-full flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer'
+                            },
+                                'Зафиксировать расчет ',
+                                React.createElement(Icon, { name: 'arrow-right', className: 'w-4 h-4' })
+                            )
+                        )
+                    ),
+
+                    // Правая интерактивная 3D-панель превью
+                    React.createElement('div', { className: 'lg:col-span-7 flex justify-center items-center py-8' },
+                        React.createElement('div', {
+                            ref: containerRef,
+                            onMouseMove: handleMouseMove,
+                            onMouseLeave: handleMouseLeave,
+                            onMouseEnter: () => setIsHovered(true),
+                            className: 'relative transition-all duration-300 cursor-grab active:cursor-grabbing select-none w-full max-w-[640px]',
+                            style: { perspective: "1200px" }
+                        },
+                            React.createElement(MotionDiv, {
+                                style: {
+                                    transformStyle: "preserve-3d",
+                                    transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+                                },
+                                className: 'relative w-full aspect-[16/10] bg-slate-950 rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden'
+                            },
+                                // Окно браузера
+                                React.createElement('div', { className: 'h-7 w-full border-b border-white/10 bg-slate-900/90 flex items-center justify-between px-4 z-20 relative' },
+                                    React.createElement('div', { className: 'flex gap-1.5' },
+                                        React.createElement('span', { className: 'w-2.5 h-2.5 rounded-full bg-red-500/80' }),
+                                        React.createElement('span', { className: 'w-2.5 h-2.5 rounded-full bg-amber-500/80' }),
+                                        React.createElement('span', { className: 'w-2.5 h-2.5 rounded-full bg-emerald-500/80' })
+                                    ),
+                                    React.createElement('div', { className: 'h-4 w-48 bg-slate-950 rounded-md border border-white/5 text-[8px] text-slate-500 font-mono flex items-center justify-center truncate px-2' },
+                                        `https://biznext.studio/${activeTheme}-site`
+                                    ),
+                                    React.createElement('div', { className: 'w-10' })
+                                ),
+
+                                // Наполнение страницы
+                                React.createElement('div', { className: 'absolute inset-0 pt-7 flex flex-col justify-between overflow-hidden' },
+                                    React.createElement('div', { className: 'flex-1 p-6 flex flex-col justify-center space-y-4 relative' },
+                                        React.createElement('div', {
+                                            className: 'absolute -top-10 -right-10 w-44 h-44 rounded-full blur-[60px] opacity-60 transition-all duration-500 pointer-events-none',
+                                            style: { backgroundColor: themeData.canvasGlow }
+                                        }),
+                                        
+                                        React.createElement(AnimatePresenceComponent, { mode: 'wait' },
+                                            React.createElement('div', {
+                                                key: activeTheme + speedLevel,
+                                                className: 'space-y-4'
+                                            },
+                                                React.createElement('h3', { className: 'text-base md:text-xl font-bold tracking-tight text-white leading-tight' },
+                                                    themeData.heroText
+                                                ),
+                                                React.createElement('p', { className: 'text-[10px] md:text-xs text-slate-400 max-w-[85%] leading-relaxed' },
+                                                    'Мы проектируем цифровой опыт экстра-класса. Индивидуальный дизайн, кастомный код, 3D анимации и космический рост конверсии в ваших руках.'
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(InteractiveCustomizer));
+    </script>
+</body>
+</html>
+] md:text-xs text-slate-400 max-w-[85%] leading-relaxed' },
+                                                    'Мы проектируем цифровой опыт экстра-класса. Индивидуальный дизайн, кастомный код, 3D анимации и космический рост конверсии в ваших руках.'
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        // Монтирование React-приложения
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(InteractiveCustomizer));
+    </script>
+</body>
+</html>
+ounded-full' }, currentLang === 'KA' ? product.originKa : product.originRu)
+                ),
+                React.createElement('div', null,
+                    React.createElement('h3', { className: 'font-bold text-base text-white' }, currentLang === 'KA' ? product.nameKa : product.nameRu),
+                    React.createElement('p', { className: 'text-xs text-gray-400 my-2' }, currentLang === 'KA' ? product.descriptionKa : product.descriptionRu),
+                    React.createElement('div', { className: 'bg-[#17171a] p-3 rounded-xl space-y-2 text-[11px] mb-4' },
+                        React.createElement('div', { className: 'flex justify-between' }, React.createElement('span', null, getTranslation('intensity', currentLang)), renderDots(product.intensity)),
+                        React.createElement('div', { className: 'flex justify-between' }, React.createElement('span', null, getTranslation('roast', currentLang)), renderDots(product.roast))
+                    ),
+                    React.createElement('div', { className: 'grid grid-cols-2 gap-1 mb-4' },
+                        ['beans', 'espresso', 'filter', 'turkish'].map(opt => React.createElement('button', { key: opt, onClick: () => setGrind(opt), className: `p-1.5 text-[10px] rounded-lg border ${grind === opt ? 'border-[#cca353] text-[#cca353] bg-[#cca353]/5' : 'border-zinc-800 text-gray-400'}` }, getTranslation('grind' + opt.charAt(0).toUpperCase() + opt.slice(1), currentLang)))
+                    )
+                ),
+                React.createElement('div', { className: 'flex justify-between items-center pt-3 border-t border-zinc-900' },
+                    React.createElement('span', { className: 'text-xl font-mono font-extrabold' }, product.price, ' ₾'),
+                    React.createElement('button', { onClick: () => onAddToCart(product, grind), className: 'bg-[#cca353] text-black px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer' }, 
+                        getTranslation('addToCart', currentLang)
+                    )
+                )
+            );
+        }
+
+        // --- КОМПОНЕНТ: ФОРМА ЛИДОВ (LeadCaptureForm) ---
+        function LeadCaptureForm({ currentLang }) {
+            const [name, setName] = useState('');
+            const [phone, setPhone] = useState('');
+            const [submitted, setSubmitted] = useState(false);
+
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                if (name && phone) setSubmitted(true);
+            };
+
+            return React.createElement('section', { id: 'consultation-section', className: 'py-16 px-4 bg-[#09090b] border-t border-zinc-900' },
+                React.createElement('div', { className: 'max-w-xl mx-auto bg-[#121214] border border-zinc-800 p-6 sm:p-8 rounded-2xl' },
+                    !submitted ? React.createElement('form', { onSubmit: handleFormSubmit, className: 'space-y-4' },
+                        React.createElement('h2', { className: 'text-xl font-extrabold text-center' }, getTranslation('leadSectionTitle', currentLang)),
+                        React.createElement('p', { className: 'text-xs text-gray-400 text-center' }, getTranslation('leadSectionSubtitle', currentLang)),
+                        React.createElement('input', { required: true, type: 'text', placeholder: getTranslation('formName', currentLang), value: name, onChange: e => setName(e.target.value), className: 'w-full bg-[#18181b] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white' }),
+                        React.createElement('input', { required: true, type: 'tel', placeholder: '+995 5__ __ __', value: phone, onChange: e => setPhone(e.target.value), className: 'w-full bg-[#18181b] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white' }),
+                        React.createElement('button', { type: 'submit', className: 'w-full bg-[#cca353] text-black font-bold p-3 rounded-xl text-xs cursor-pointer' }, getTranslation('formBtnSubmit', currentLang))
+                    ) : React.createElement('div', { className: 'text-center space-y-3' },
+                        React.createElement(Icon, { name: 'check-circle', className: 'w-12 h-12 text-[#cca353] mx-auto' }),
+                        React.createElement('h3', { className: 'text-lg font-bold' }, getTranslation('formSuccessTitle', currentLang)),
+                        React.createElement('p', { className: 'text-xs text-gray-400' }, getTranslation('formSuccessMsg', currentLang))
+                    )
+                )
+            );
+        }
+
+        // --- КОМПОНЕНТ: КОРЗИНА И ОПЛАТА (CartDrawer) ---
+        function CartDrawer({ isOpen, onClose, cart, currentLang, onUpdateQty, onClearCart }) {
+            const [step, setStep] = useState('cart');
+            const [address, setAddress] = useState('');
+            const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+            if (!isOpen) return null;
+
+            return React.createElement('div', { className: 'fixed inset-0 z-50 flex justify-end' },
+                React.createElement('div', { className: 'absolute inset-0 bg-black/60 backdrop-blur-sm', onClick: onClose }),
+                React.createElement('div', { className: 'relative w-full max-w-md bg-[#0c0c0d] border-l border-zinc-800 p-6 flex flex-col justify-between h-full z-10' },
+                    React.createElement('div', { className: 'flex justify-between items-center border-b border-zinc-900 pb-4' },
+                        React.createElement('h3', { className: 'font-bold' }, getTranslation('cartTitle', currentLang)),
+                        React.createElement('button', { onClick: onClose, className: 'text-gray-400 hover:text-white' }, '✕')
+                    ),
+                    React.createElement('div', { className: 'flex-1 overflow-y-auto py-4 space-y-4' },
+                        step === 'cart' && (cart.length === 0 ? React.createElement('p', { className: 'text-xs text-gray-500 text-center py-10' }, getTranslation('cartEmpty', currentLang)) : React.createElement('div', { className: 'space-y-3' },
+                            cart.map(item => React.createElement('div', { key: item.id, className: 'flex justify-between items-center bg-[#121214] p-3 rounded-xl border border-zinc-900' },
+                                React.createElement('div', null,
+                                    React.createElement('h4', { className: 'text-xs font-bold' }, currentLang === 'KA' ? item.product.nameKa : item.product.nameRu),
+                                    React.createElement('p', { className: 'text-[10px] text-[#cca353]' }, item.grind)
+                                ),
+                                React.createElement('div', { className: 'flex items-center space-x-2' },
+                                    React.createElement('button', { onClick: () => onUpdateQty(item.id, -1), className: 'text-xs bg-zinc-800 px-1.5 py-0.5 rounded' }, '-'),
+                                    React.createElement('span', { className: 'text-xs font-mono' }, item.quantity),
+                                    React.createElement('button', { onClick: () => onUpdateQty(item.id, 1), className: 'text-xs bg-zinc-800 px-1.5 py-0.5 rounded' }, '+'),
+                                    React.createElement('span', { className: 'text-xs font-mono ml-2' }, item.product.price * item.quantity, ' ₾')
+                                )
+                            )),
+                            React.createElement('div', { className: 'pt-4 border-t border-zinc-900 flex justify-between font-bold' },
+                                React.createElement('span', null, getTranslation('itemTotal', currentLang)),
+                                React.createElement('span', { className: 'text-[#cca353]' }, cartTotal, ' ₾')
+                            )
+                        )),
+                        step === 'checkout' && React.createElement('div', { className: 'space-y-3' },
+                            React.createElement('h4', { className: 'text-xs uppercase text-[#cca353] font-bold' }, getTranslation('paymentTitle', currentLang)),
+                            React.createElement('input', { required: true, type: 'text', placeholder: getTranslation('clientAddress', currentLang), value: address, onChange: e => setAddress(e.target.value), className: 'w-full bg-[#111113] border border-zinc-800 rounded-lg p-2 text-xs text-white' }),
+                            React.createElement('input', { type: 'text', placeholder: '4000 1234 5678 9010', className: 'w-full bg-[#111113] border border-zinc-800 rounded-lg p-2 text-xs font-mono text-white' }),
+                            React.createElement('div', { className: 'grid grid-cols-2 gap-2' },
+                                React.createElement('input', { type: 'text', placeholder: 'MM/YY', className: 'w-full bg-[#111113] border border-zinc-800 rounded-lg p-2 text-xs text-center text-white' }),
+                                React.createElement('input', { type: 'password', placeholder: 'CVV', className: 'w-full bg-[#111113] border border-zinc-800 rounded-lg p-2 text-xs text-center text-white' })
+                            )
+                        ),
+                        step === 'success' && React.createElement('div', { className: 'text-center space-y-3 py-6' },
+                            React.createElement(Icon, { name: 'check-circle', className: 'w-12 h-12 text-[#cca353] mx-auto' }),
+                            React.createElement('h3', { className: 'font-bold' }, getTranslation('successTitle', currentLang)),
+                            React.createElement('p', { className: 'text-xs text-zinc-400' }, 'Delivery status: Preparing via Wolt / Bolt Courier')
+                        )
+                    ),
+                    React.createElement('div', { className: 'border-t border-zinc-900 pt-4' },
+                        step === 'cart' && cart.length > 0 && React.createElement('button', { onClick: () => setStep('checkout'), className: 'w-full bg-[#cca353] text-black text-xs font-bold p-3 rounded-xl cursor-pointer' }, getTranslation('checkoutBtn', currentLang)),
+                        step === 'checkout' && React.createElement('button', { onClick: () => setStep('success'), className: 'w-full bg-[#cca353] text-black text-xs font-bold p-3 rounded-xl cursor-pointer' }, getTranslation('payBtnSubmit', currentLang)),
+                        step === 'success' && React.createElement('button', { onClick: () => { onClearCart(); setStep('cart'); onClose(); }, className: 'w-full bg-zinc-800 text-white text-xs font-bold p-3 rounded-xl cursor-pointer' }, 'Close')
+                    )
+                )
+            );
+        }
+
+        // --- ГЛАВНЫЙ КОМПОНЕНТ ПРИЛОЖЕНИЯ (App) ---
+        function App() {
+            const [currentLang, setCurrentLang] = useState('KA');
+            const [cart, setCart] = useState([]);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+
+            const handleAddToCart = (product, grind) => {
+                const itemId = `${product.id}-${grind}`;
+                const exists = cart.find(i => i.id === itemId);
+                if (exists) {
+                    setCart(cart.map(i => i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i));
+                } else {
+                    setCart([...cart, { id: itemId, product, quantity: 1, grind }]);
+                }
+                setIsCartOpen(true);
+            };
+
+            const handleUpdateQty = (id, delta) => {
+                setCart(cart.map(i => i.id === id ? { ...i, quantity: i.quantity + delta } : i).filter(i => i.quantity > 0));
+            };
+
+            return React.createElement('div', { className: 'min-h-screen flex flex-col justify-between' },
+                React.createElement(Header, { currentLang, onLangChange: setCurrentLang, cart, onOpenCart: () => setIsCartOpen(true) }),
+                
+                // HERO SECTION
+                React.createElement('section', { className: 'relative min-h-[70vh] flex items-center justify-center py-16 px-4 text-center overflow-hidden bg-cover bg-center', style: { backgroundImage: `linear-gradient(to top, #0c0c0d, rgba(12,12,13,0.7)), url(${IMAGES.hero})` } },
+                    React.createElement('div', { className: 'max-w-3xl mx-auto space-y-6 z-10' },
+                        React.createElement('h1', { className: 'text-4xl sm:text-6xl font-display font-extrabold uppercase' }, 
+                            getTranslation('heroTitle1', currentLang), React.createElement('br'),
+                            React.createElement('span', { className: 'text-transparent bg-clip-text bg-gradient-to-r from-[#cca353] to-[#ffdf96] italic' }, getTranslation('heroTitle2', currentLang))
+                        ),
+                        React.createElement('p', { className: 'text-xs sm:text-sm text-gray-300 max-w-xl mx-auto' }, getTranslation('heroSubtitle', currentLang)),
+                        React.createElement('div', { className: 'flex justify-center' },
+                            React.createElement('button', { onClick: () => document.getElementById('shop-section').scrollIntoView({ behavior: 'smooth' }), className: 'bg-[#cca353] text-black font-bold text-xs px-6 py-3 rounded-xl cursor-pointer' }, getTranslation('heroCTA', currentLang))
+                        )
+                    )
+                ),
+
+                // ABOUT SECTION
+                React.createElement('section', { id: 'about-section', className: 'py-16 px-4 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center' },
+                    React.createElement('img', { src: IMAGES.hero, className: 'rounded-2xl border border-zinc-800 shadow-2xl' }),
+                    React.createElement('div', { className: 'space-y-4' },
+                        React.createElement('h2', { className: 'text-2xl font-extrabold' }, currentLang === 'KA' ? 'ჩვენი ხელობა' : 'Искусство обжарки SHAVI'),
+                        React.createElement('p', { className: 'text-xs text-gray-400 leading-relaxed' }, 'Наш ростери-цех находится на Вере. Мы каждую неделю калибруем профили под новые партии зеленого зерна класса Specialty. Наша цель — раскрыть потенциал зерна и доставить его вам за 1 час.')
+                    )
+                ),
+
+                // SHOP SECTION
+                React.createElement('section', { id: 'shop-section', className: 'py-16 px-4 bg-[#111113] border-t border-zinc-900' },
+                    React.createElement('div', { className: 'max-w-6xl mx-auto' },
+                        React.createElement('div', { className: 'text-center mb-10' },
+                            React.createElement('h2', { className: 'text-2xl font-extrabold uppercase' }, getTranslation('filterTitle', currentLang)),
+                            React.createElement('p', { className: 'text-xs text-gray-400 mt-1' }, getTranslation('filterSubtitle', currentLang))
+                        ),
+                        React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' },
+                            PRODUCTS.map(prod => React.createElement(ProductCard, { key: prod.id, product: prod, currentLang, onAddToCart: handleAddToCart }))
+                        )
+                    )
+                ),
+
+                React.createElement(LeadCaptureForm, { currentLang }),
+
+                // REVIEWS SECTION
+                React.createElement('section', { id: 'reviews-section', className: 'py-16 px-4 max-w-5xl mx-auto space-y-8' },
+                    React.createElement('h2', { className: 'text-2xl font-extrabold text-center' }, getTranslation('reviewsTitle', currentLang)),
+                    React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-6' },
+                        REVIEWS.map(rev => React.createElement('div', { key: rev.id, className: 'bg-[#121214] border border-zinc-800 p-5 rounded-2xl space-y-3' },
+                            React.createElement('p', { className: 'text-xs text-gray-300 italic' }, `"${currentLang === 'KA' ? rev.textKa : rev.textRu}"`),
+                            React.createElement('div', { className: 'flex items-center space-x-3 pt-2 border-t border-zinc-900' },
+                                React.createElement('img', { src: rev.avatar, className: 'w-8 h-8 rounded-full object-cover' }),
+                                React.createElement('div', null,
+                                    React.createElement('h4', { className: 'text-xs font-bold text-white' }, currentLang === 'KA' ? rev.authorKa : rev.authorRu),
+                                    React.createElement('p', { className: 'text-[10px] text-gray-500' }, currentLang === 'KA' ? rev.roleKa : rev.roleRu)
+                                )
+                            )
+                        ))
+                    )
+                ),
+
+                // FOOTER
+                React.createElement('footer', { className: 'bg-[#070708] border-t border-zinc-900 py-8 px-4 text-center text-xs text-gray-500' },
+                    React.createElement('p', null, '© 2026 SHAVI Coffee Roasters Ltd. 12 Shalva Radiani St, Vera, Tbilisi, Georgia')
+                ),
+
+                React.createElement(CartDrawer, { isOpen: isCartOpen, onClose: () => setIsCartOpen(false), cart, currentLang, onUpdateQty: handleUpdateQty, onClearCart: () => setCart([]) })
+            );
+        }
+
+        // Рендеринг приложения в DOM
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
